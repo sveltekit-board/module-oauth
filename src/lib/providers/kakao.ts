@@ -2,6 +2,7 @@ import type { AuthOption, Client, Handle, HandleInput, LoginCallback, Provider, 
 import { cipher } from "$lib/src/crypto.js";
 import { redirect } from "@sveltejs/kit";
 import axios, { type AxiosResponse } from "axios";
+import { randomBytes } from "crypto";
 
 export default class Kakao implements Provider {
     clientId: string;
@@ -28,11 +29,17 @@ export default class Kakao implements Provider {
         return async function (input: HandleInput) {
             switch (input.event.url.pathname) {
                 case (loginUriPath): {
+                    input.event.cookies.delete("auth-state", { path:'/' });
+                    const state = randomBytes(32).toString('hex');
+                    input.event.cookies.set("auth-state", state, {path:'/'});
+
                     const kakaoAuthUrl = new URL('https://kauth.kakao.com/oauth/authorize');
                     kakaoAuthUrl.searchParams.append("client_id", clientId);
                     kakaoAuthUrl.searchParams.append("redirect_uri", "http://localhost:5173/auth/callback/kakao");
-                    kakaoAuthUrl.searchParams.append("response_type", "code")
+                    kakaoAuthUrl.searchParams.append("response_type", "code");
+                    kakaoAuthUrl.searchParams.append("state", state);
 
+                    input.event.cookies.delete('auth-redirect-to', { path: '/' });
                     const redirectTo = input.event.url.searchParams.get('redirect_to');
                     if (redirectTo !== null) {
                         input.event.cookies.set('auth-redirect-to', redirectTo, { path: '/' });
@@ -41,6 +48,13 @@ export default class Kakao implements Provider {
                     throw redirect(302, kakaoAuthUrl.href);
                 }
                 case (callbackUriPath): {
+                    const cookieState = input.event.cookies.get("auth-state");
+                    const uriState = input.event.url.searchParams.get("state");
+                    if(cookieState === undefined || uriState === null || cookieState !== uriState){
+                        throw new Error("Invalid state");
+                    }
+                    input.event.cookies.delete("auth-state", { path:'/' });
+
                     const code = input.event.url.searchParams.get('code') as string;
 
                     const redirectUri = new URL(input.event.url.origin)
@@ -48,7 +62,7 @@ export default class Kakao implements Provider {
 
                     const response: AxiosResponse = await axios({
                         method: 'POST',
-                        url: '	https://kauth.kakao.com/oauth/token',
+                        url: 'https://kauth.kakao.com/oauth/token',
                         data: {
                             'client_id': clientId,
                             'client_secret': clientSecret,

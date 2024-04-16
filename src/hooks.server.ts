@@ -1,7 +1,7 @@
-import Github from '$lib/providers/github.js';
 import { sequence } from '@sveltejs/kit/hooks';
+import {config} from 'dotenv';
 import auth from '$lib/src/auth.js';
-import {config} from 'dotenv'
+import Github from '$lib/providers/github.js';
 import Kakao from '$lib/providers/kakao.js';
 import Naver from '$lib/providers/naver.js';
 
@@ -20,7 +20,11 @@ const naver = new Naver({
     clientSecret: process.env.NAVER_CLIENT_SECRET as string
 })
 
-export const handle = sequence(auth([github, kakao, naver], {key: process.env.AUTH_KEY as string, maxAge: 3600, autoRefreshMaxAge: true}), async function({event, resolve}){
+export const handle = sequence(auth([github, kakao, naver], {
+    key: process.env.AUTH_KEY as string, 
+    maxAge: 3600, 
+    autoRefreshMaxAge: true
+}), async function({event, resolve}){
     if(event.locals.user){
         console.log(event.locals.user)
     }

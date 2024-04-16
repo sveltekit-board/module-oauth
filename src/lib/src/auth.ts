@@ -12,7 +12,9 @@ function getUser(option: AuthOption) {
         const user = JSON.parse(decipher(token, option.key));
         input.event.locals.user = user;
 
-        input.event.cookies.set('auth-user', token, { path: '/', maxAge: option.maxAge });
+        if(option.autoRefreshMaxAge){
+            input.event.cookies.set('auth-user', token, { path: '/', maxAge: option.maxAge })
+        };
 
         return await input.resolve(input.event);
     }

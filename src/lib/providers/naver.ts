@@ -1,5 +1,5 @@
 import Provider from "$lib/src/provider.js";
-import type { User } from "$lib/src/types.js";
+import type { User, UserWithouExpiresIn } from "$lib/src/types.js";
 
 export default class Naver extends Provider<NaverUserData> {
     loginUrlPath: string = "/auth/login/naver";
@@ -8,7 +8,7 @@ export default class Naver extends Provider<NaverUserData> {
     accessTokenUrl: string = "https://nid.naver.com/oauth2.0/token";
     userdataRequestUrl: string = "https://openapi.naver.com/v1/nid/me";
 
-    createUser(userdataResponse: NaverUserResponse): User<NaverUserData> {
+    createUser(userdataResponse: NaverUserResponse): UserWithouExpiresIn<NaverUserData> {
         return {
             provider: "naver",
             providerId: userdataResponse.response.id,

@@ -1,4 +1,4 @@
-import type { AuthOption, HandleInput, LoginCallback, User } from "./types.js";
+import type { AuthOption, HandleInput, LoginCallback, User, UserWithouExpiresIn } from "./types.js";
 import type { Client } from "./types.js";
 import { randomBytes } from "crypto";
 import { redirect } from "@sveltejs/kit";
@@ -7,22 +7,18 @@ import { cipher } from "./crypto.js";
 
 export default class Provider<T extends Record<string, any>>{
     client:Client;
-    loginCallback?: LoginCallback<T>
 
     // @ts-expect-error
     loginUrlPath: string; callbackUriPath: string; oAuthUrl: string; accessTokenUrl: string; userdataRequestUrl: string;
     // @ts-expect-error
-    createUser(userdataResponse: any): Partial<User<T>>;
+    createUser(userdataResponse: any): UserWithouExpiresIn<T>;
     // @ts-expect-error
     getAccessToken(responseData: any): string;
     
 
     // @ts-check
-    constructor(client:Client, loginCallback?: LoginCallback<T>){
+    constructor(client:Client){
         this.client = client;
-        if(loginCallback !== undefined){
-            this.loginCallback = loginCallback;
-        }
     }
 
     handle(option: AuthOption){
@@ -101,11 +97,8 @@ export default class Provider<T extends Record<string, any>>{
                         }
                     })).data
 
-                    let user = P.createUser(userdataResponse);
+                    let user: Partial<User<T>> = P.createUser(userdataResponse);
                     user.expiresIn = Date.now() + option.maxAge * 1000;
-                    if(P.loginCallback !== undefined){
-                        await P.loginCallback(input, user as User<T>, userdataResponse)
-                    }
                     const token = cipher(JSON.stringify(user), option.key);
                     input.event.cookies.set('auth-user', token, {path:'/', maxAge: option.maxAge});
 

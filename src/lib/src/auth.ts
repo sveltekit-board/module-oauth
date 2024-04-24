@@ -10,7 +10,15 @@ function getUser(option: AuthOption) {
             return await input.resolve(input.event)
         }
 
-        const user: User<any> = JSON.parse(decipher(token, option.key));
+        let user: User<any>
+        try{
+            user = JSON.parse(decipher(token, option.key));
+        }
+        catch {
+            //key 값이 올바르지 않아서 복호화가 안된다면 종료
+            input.event.cookies.delete("auth-user", {path: '/'});
+            return await input.resolve(input.event);
+        }
 
         //만료 확인
         if(user.expiresIn < Date.now()){

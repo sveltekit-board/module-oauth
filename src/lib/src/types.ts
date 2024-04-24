@@ -28,6 +28,12 @@ export interface User<T extends Record<string, any>>{
     providerUserData?: T;
 }
 
+export interface UserWithouExpiresIn<T extends Record<string, any>>{
+    provider: string;
+    providerId: string;
+    providerUserData?: T;
+}
+
 export interface AuthOption{
     key: string;
     maxAge: number;

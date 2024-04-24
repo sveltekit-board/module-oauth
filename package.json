@@ -1,6 +1,12 @@
 {
 	"name": "@sveltekit-board/auth",
-	"version": "0.3.2",
+	"version": "0.3.3",
+	"author": {
+		"name": "hotsixman",
+		"email": "hotsixman05@gmail.com",
+		"url": "https://github.com/hotsixman"
+	},
+	"keywords": ["svelte", "sveltekit", "auth", "oauth"],
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build && npm run package",

@@ -12,7 +12,7 @@ export default class Provider<T extends Record<string, any>>{
     // @ts-expect-error
     loginUrlPath: string; callbackUriPath: string; oAuthUrl: string; accessTokenUrl: string; userdataRequestUrl: string;
     // @ts-expect-error
-    createUser(userdataResponse: any): User<T>;
+    createUser(userdataResponse: any): Partial<User<T>>;
     // @ts-expect-error
     getAccessToken(responseData: any): string;
     
@@ -101,9 +101,10 @@ export default class Provider<T extends Record<string, any>>{
                         }
                     })).data
 
-                    const user = P.createUser(userdataResponse);
+                    let user = P.createUser(userdataResponse);
+                    user.expiresIn = Date.now() + option.maxAge * 1000;
                     if(P.loginCallback !== undefined){
-                        await P.loginCallback(input, user, userdataResponse)
+                        await P.loginCallback(input, user as User<T>, userdataResponse)
                     }
                     const token = cipher(JSON.stringify(user), option.key);
                     input.event.cookies.set('auth-user', token, {path:'/', maxAge: option.maxAge});

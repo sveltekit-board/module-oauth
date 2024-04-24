@@ -1,7 +1,7 @@
 import { sequence } from "@sveltejs/kit/hooks";
-import type { AuthOption, HandleInput } from "./types.js";
+import type { AuthOption, HandleInput, User } from "./types.js";
 import Provider from "./provider.js";
-import { decipher } from "./crypto.js";
+import { cipher, decipher } from "./crypto.js";
 
 function getUser(option: AuthOption) {
     return async function (input: HandleInput) {
@@ -10,11 +10,21 @@ function getUser(option: AuthOption) {
             return await input.resolve(input.event)
         }
 
-        const user = JSON.parse(decipher(token, option.key));
+        const user: User<any> = JSON.parse(decipher(token, option.key));
+
+        //만료 확인
+        if(user.expiresIn < Date.now()){
+            input.event.cookies.delete("auth-user", {path: '/'});
+            return await input.resolve(input.event);
+        }
+
         input.event.locals.user = user;
 
-        if(option.autoRefreshMaxAge){
+        if (option.autoRefreshMaxAge) {
             input.event.cookies.set('auth-user', token, { path: '/', maxAge: option.maxAge })
+            user.expiresIn = Date.now() + option.maxAge * 1000;
+            const newToken = cipher(JSON.stringify(user), option.key);
+            input.event.cookies.set('auth-user', newToken, {path:'/', maxAge: option.maxAge});
         };
 
         return await input.resolve(input.event);

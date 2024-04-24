@@ -19,23 +19,13 @@ export interface Client {
     clientSecret: string;
 }
 
-export type LoginCallback<T> = (input:HandleInput, token: User, user: T) => MaybePromise<any>
+export type LoginCallback<T extends Record<string, any>> = (input:HandleInput, token: User<T>, user: T) => MaybePromise<any>
 
 export interface User<T extends Record<string, any>>{
     provider: string;
     providerId: string;
+    expiresIn: number;
     providerUserData?: T;
-}
-
-export interface Token{
-    access_token: string;
-    token_type?: string;
-    refresh_token?: string;
-    expires_in?: number;
-    expiration?: number;
-    scope?: string;
-    refresh_token_expires_in?: number;
-    refresh_token_expiration?: number;
 }
 
 export interface AuthOption{

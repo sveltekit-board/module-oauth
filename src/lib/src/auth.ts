@@ -1,5 +1,6 @@
 import { sequence } from "@sveltejs/kit/hooks";
-import type { AuthOption, HandleInput, Provider } from "./types.js";
+import type { AuthOption, HandleInput } from "./types.js";
+import Provider from "./provider.js";
 import { decipher } from "./crypto.js";
 
 function getUser(option: AuthOption) {
@@ -20,6 +21,6 @@ function getUser(option: AuthOption) {
     }
 }
 
-export default function auth(providers: Provider[], option: AuthOption) {
+export default function auth(providers: Provider<any>[], option: AuthOption) {
     return sequence(getUser(option), ...providers.map(provider => provider.handle(option)))
 }

@@ -1,121 +1,22 @@
-import type { AuthOption, Client, Handle, HandleInput, LoginCallback, Provider, User } from "$lib/src/types.js";
-import { cipher } from "$lib/src/crypto.js";
-import { redirect } from "@sveltejs/kit";
-import axios, { type AxiosResponse } from "axios";
-import { randomBytes } from "crypto";
+import Provider from "$lib/src/provider.js";
 
-export default class Kakao implements Provider {
-    clientId: string;
-    clientSecret: string;
-    loginUriPath: string = "/auth/login/kakao";
+export default class Kakao extends Provider<KakaoUserData> {
+    loginUrlPath: string = "/auth/login/kakao";
     callbackUriPath: string = "/auth/callback/kakao";
-    loginCallback?: LoginCallback<KakaoUserData>;
+    oAuthUrl: string = 'https://kauth.kakao.com/oauth/authorize';
+    accessTokenUrl: string = 'https://kauth.kakao.com/oauth/token';
+    userdataRequestUrl: string = 'https://kapi.kakao.com/v2/user/me';
 
-    constructor(client: Client, loginCallback?: LoginCallback<KakaoUserData>) {
-        this.clientId = client.clientId;
-        this.clientSecret = client.clientSecret;
-        if (loginCallback !== undefined) {
-            this.loginCallback = loginCallback
+    createUser(userdataResponse: KakaoUserData) {
+        return {
+            provider: "kakao",
+            providerId: userdataResponse.id.toString(),
+            providerUserData: userdataResponse
         }
     }
 
-    handle(option: AuthOption) {
-        const loginUriPath = this.loginUriPath;
-        const clientId = this.clientId;
-        const callbackUriPath = this.callbackUriPath;
-        const clientSecret = this.clientSecret;
-        const loginCallback = this.loginCallback
-
-        return async function (input: HandleInput) {
-            switch (input.event.url.pathname) {
-                case (loginUriPath): {
-                    input.event.cookies.delete("auth-state", { path:'/' });
-                    const state = randomBytes(32).toString('hex');
-                    input.event.cookies.set("auth-state", state, {path:'/'});
-
-                    const kakaoAuthUrl = new URL('https://kauth.kakao.com/oauth/authorize');
-                    kakaoAuthUrl.searchParams.append("client_id", clientId);
-                    kakaoAuthUrl.searchParams.append("redirect_uri", "http://localhost:5173/auth/callback/kakao");
-                    kakaoAuthUrl.searchParams.append("response_type", "code");
-                    kakaoAuthUrl.searchParams.append("state", state);
-
-                    input.event.cookies.delete('auth-redirect-to', { path: '/' });
-                    const redirectTo = input.event.url.searchParams.get('redirect_to');
-                    if (redirectTo !== null) {
-                        input.event.cookies.set('auth-redirect-to', redirectTo, { path: '/' });
-                    }
-
-                    throw redirect(302, kakaoAuthUrl.href);
-                }
-                case (callbackUriPath): {
-                    const cookieState = input.event.cookies.get("auth-state");
-                    const uriState = input.event.url.searchParams.get("state");
-                    if(cookieState === undefined || uriState === null || cookieState !== uriState){
-                        throw new Error("Invalid state");
-                    }
-                    input.event.cookies.delete("auth-state", { path:'/' });
-
-                    const code = input.event.url.searchParams.get('code') as string;
-
-                    const redirectUri = new URL(input.event.url.origin)
-                    redirectUri.pathname = callbackUriPath
-
-                    const response: AxiosResponse = await axios({
-                        method: 'POST',
-                        url: 'https://kauth.kakao.com/oauth/token',
-                        data: {
-                            'client_id': clientId,
-                            'client_secret': clientSecret,
-                            'code': code,
-                            'redirect_uri': redirectUri.href,
-                            'grant_type': "authorization_code"
-                        },
-                        headers: {
-                            'Content-Type': "application/x-www-form-urlencoded;charset=utf-8"
-                        }
-                    });
-
-                    const currentTime = new Date().getTime()
-
-                    const userResponse: KakaoUserData = (await axios({
-                        method: 'GET',
-                        url: 'https://kapi.kakao.com/v2/user/me',
-                        headers: {
-                            'Authorization': `Bearer ${response.data['access_token']}`,
-                            'Content-Type': "Content-type: application/x-www-form-urlencoded;charset=utf-8"
-                        }
-                    })).data;
-
-                    const user: User = {
-                        provider: "kakao",
-                        providerId: userResponse.id.toString(),
-                        token: {
-                            ...response.data,
-                            expiration: currentTime + response.data.expires_in * 1000,
-                            refresh_token_expiration: currentTime + response.data.refresh_token_expires_in * 1000
-                        },
-                        providerUserData: userResponse
-                    }
-
-                    if (loginCallback !== undefined) {
-                        await loginCallback(input, user, userResponse)
-                    }
-
-                    const token = cipher(JSON.stringify(user), option.key);
-                    input.event.cookies.set('auth-user', token, { path: '/', maxAge: option.maxAge })
-
-                    const redirectTo = input.event.cookies.get("auth-redirect-to");
-                    if (redirectTo !== undefined) {
-                        input.event.cookies.delete("auth-redirect-to", { path: "/" });
-                        throw redirect(302, redirectTo);
-                    }
-                    else {
-                        throw redirect(302, '/');
-                    }
-                }
-            }
-            return await input.resolve(input.event)
-        }
+    getAccessToken(responseData: any) {
+        return responseData['access_token'];
     }
 }
 
@@ -147,8 +48,8 @@ export interface KakaoUserData {
         ci_needs_agreement?: boolean,
         ci?: string,
         ci_authenticated_at?: string,
-        profile: { 
-            nickname?: string, 
+        profile: {
+            nickname?: string,
             thumbnail_image_url?: string,
             profile_image_url?: string,
             is_default_image?: boolean,

@@ -20,6 +20,7 @@ const naver = new Naver({
     clientSecret: process.env.NAVER_CLIENT_SECRET as string
 })
 
+
 export const handle = sequence(auth([github, kakao, naver], {
     key: process.env.AUTH_KEY as string, 
     maxAge: 3600, 

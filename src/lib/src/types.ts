@@ -21,11 +21,10 @@ export interface Client {
 
 export type LoginCallback<T> = (input:HandleInput, token: User, user: T) => MaybePromise<any>
 
-export interface User{
+export interface User<T extends Record<string, any>>{
     provider: string;
     providerId: string;
-    token?:Token;
-    providerUserData?: Record<string, any>;
+    providerUserData?: T;
 }
 
 export interface Token{

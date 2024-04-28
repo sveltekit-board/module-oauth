@@ -66,4 +66,10 @@ class Github extends Provider<GithubUserData> {
         return responseParams.get('access_token') as string;
     }
 }
+
+export interface UserWithouExpiresIn<T extends Record<string, any>>{
+    provider: string;
+    providerId: string;
+    providerUserData?: T;
+}
 ```

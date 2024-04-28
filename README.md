@@ -1,6 +1,6 @@
-# @sveltekit-board/auth
+# @sveltekit-board/oauth
 
-이 라이브러리는 인증기능을 담당합니다. 현재 OAuth 인증을 지원합니다. 
+이 라이브러리는 OAuth 인증을 담당합니다.
 
 **Note**
 이 라이브러리는 사용자를 **구별**하는 것이 목적입니다. 그 과정에서 `access_token` 등의 토큰을 받아오기는 하나, 이 토큰은 유저 데이터를 받아올 때만 사용합니다. 따라서 해당 토큰이 필요한 경우에는 별도 라이브러리를 사용해야합니다.
@@ -8,13 +8,13 @@
 ## 사용법
 
 ### 설치
-`npm i @sveltekit-board/auth`
+`npm i @sveltekit-board/oauth`
 
 ### 사용
 ```js
 /* src/hooks.server.ts */
 import { sequence } from '@sveltejs/kit/hooks';
-import auth, { providers } from '@sveltekit-board/auth';
+import auth, { providers } from '@sveltekit-board/oauth';
 
 const github = new providers.Github({
     clientId: process.env.GITHUB_CLIENT_ID,//client id

@@ -3,7 +3,7 @@ import auth from "./src/auth.js";
 export default auth;
 
 import Provider from "./src/provider.js";
-export {Provider};
+export { Provider };
 
 import Github from "./providers/github.js";
 import Kakao from "./providers/kakao.js";
@@ -14,3 +14,6 @@ export const providers = {
     Kakao,
     Naver
 }
+
+import { type User } from "./src/types.js";
+export type { User };

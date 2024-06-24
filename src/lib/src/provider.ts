@@ -4,6 +4,7 @@ import { randomBytes } from "crypto";
 import { redirect } from "@sveltejs/kit";
 import axios, { type AxiosResponse } from 'axios';
 import { cipher } from "./crypto.js";
+import { createCookieOption } from "./auth.js";
 
 export default class Provider<T extends Record<string, any>>{
     client:Client;
@@ -100,7 +101,7 @@ export default class Provider<T extends Record<string, any>>{
                     let user: Partial<User<T>> = P.createUser(userdataResponse);
                     user.expiresIn = Date.now() + option.maxAge * 1000;
                     const token = cipher(JSON.stringify(user), option.key);
-                    input.event.cookies.set('auth-user', token, {path:'/', maxAge: option.maxAge});
+                    input.event.cookies.set('auth-user', token, createCookieOption(option.maxAge, option?.withCredentials ?? false));
 
                     const redirectTo = input.event.cookies.get("auth-redirect-to");
                     if(redirectTo !== undefined){

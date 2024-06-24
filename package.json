@@ -1,12 +1,17 @@
 {
 	"name": "@sveltekit-board/oauth",
-	"version": "0.4.2",
+	"version": "0.5.0",
 	"author": {
 		"name": "hotsixman",
 		"email": "hotsixman05@gmail.com",
 		"url": "https://github.com/hotsixman"
 	},
-	"keywords": ["svelte", "sveltekit", "auth", "oauth"],
+	"keywords": [
+		"svelte",
+		"sveltekit",
+		"auth",
+		"oauth"
+	],
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build && npm run package",
@@ -39,6 +44,7 @@
 		"@sveltejs/kit": "^2.0.0",
 		"@sveltejs/package": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",
+		"@vitejs/plugin-basic-ssl": "^1.1.0",
 		"dotenv": "^16.4.5",
 		"publint": "^0.1.9",
 		"svelte": "^4.2.7",

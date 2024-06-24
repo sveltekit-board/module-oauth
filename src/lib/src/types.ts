@@ -38,4 +38,5 @@ export interface AuthOption{
     key: string;
     maxAge: number;
     autoRefreshMaxAge: boolean;
+    withCredentials?: boolean;
 }

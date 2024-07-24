@@ -20,6 +20,12 @@ function getUser(option: AuthOption) {
             return await input.resolve(input.event);
         }
 
+        //절대 만료 확인
+        if (user.absoluteExpiresIn && user.absoluteExpiresIn < Date.now()){
+            input.event.cookies.delete("auth-user", { path: '/' });
+            return await input.resolve(input.event);
+        }
+
         //만료 확인
         if (user.expiresIn < Date.now()) {
             input.event.cookies.delete("auth-user", { path: '/' });

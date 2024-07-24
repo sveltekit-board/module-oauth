@@ -25,6 +25,7 @@ export interface User<T extends Record<string, any>>{
     provider: string;
     providerId: string;
     expiresIn: number;
+    absoluteExpiresIn?: number;
     providerUserData?: T;
 }
 
@@ -37,6 +38,7 @@ export interface UserWithouExpiresIn<T extends Record<string, any>>{
 export interface AuthOption{
     key: string;
     maxAge: number;
+    absoluteMaxAge?: number;
     autoRefreshMaxAge: boolean;
     withCredentials?: boolean;
 }

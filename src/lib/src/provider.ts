@@ -100,6 +100,9 @@ export default class Provider<T extends Record<string, any>>{
 
                     let user: Partial<User<T>> = P.createUser(userdataResponse);
                     user.expiresIn = Date.now() + option.maxAge * 1000;
+                    if(option.absoluteMaxAge){
+                        user.absoluteExpiresIn = Date.now() + option.absoluteMaxAge * 1000;
+                    }
                     const token = cipher(JSON.stringify(user), option.key);
                     input.event.cookies.set('auth-user', token, createCookieOption(option.maxAge, option?.withCredentials ?? false));
 

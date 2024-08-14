@@ -105,6 +105,11 @@ export default class Provider<T extends Record<string, any>>{
                     }
                     const token = cipher(JSON.stringify(user), option.key);
                     input.event.cookies.set('auth-user', token, createCookieOption(option.maxAge, option?.withCredentials ?? false));
+                    if(option.subDomains){
+                        option.subDomains.forEach(subDomain => {
+                            input.event.cookies.set('auth-user', token, createCookieOption(option.maxAge, option?.withCredentials ?? false, subDomain));
+                        })
+                    }
 
                     const redirectTo = input.event.cookies.get("auth-redirect-to");
                     if(redirectTo !== undefined){

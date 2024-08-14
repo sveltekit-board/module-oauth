@@ -2,6 +2,7 @@ import { sequence } from "@sveltejs/kit/hooks";
 import type { AuthOption, HandleInput, User } from "./types.js";
 import Provider from "./provider.js";
 import { cipher, decipher } from "./crypto.js";
+import type { CookieSerializeOptions } from 'cookie';
 
 function getUser(option: AuthOption) {
     return async function (input: HandleInput) {
@@ -21,7 +22,7 @@ function getUser(option: AuthOption) {
         }
 
         //절대 만료 확인
-        if (user.absoluteExpiresIn && user.absoluteExpiresIn < Date.now()){
+        if (user.absoluteExpiresIn && user.absoluteExpiresIn < Date.now()) {
             input.event.cookies.delete("auth-user", { path: '/' });
             return await input.resolve(input.event);
         }
@@ -38,29 +39,38 @@ function getUser(option: AuthOption) {
             user.expiresIn = Date.now() + option.maxAge * 1000;
             const newToken = cipher(JSON.stringify(user), option.key);
             input.event.cookies.set('auth-user', newToken, createCookieOption(option.maxAge, option?.withCredentials ?? false));
+            if(option.subDomains){
+                option.subDomains.forEach(subDomain => {
+                    input.event.cookies.set('auth-user', token, createCookieOption(option.maxAge, option?.withCredentials ?? false, subDomain));
+                })
+            }
         };
-        
+
         return await input.resolve(input.event);
     }
 }
 
-export function createCookieOption(maxAge: number, withCredentials: boolean) {
-    const defaultOption = {
+export function createCookieOption(maxAge: number, withCredentials: boolean, domain?: string) {
+    let defaultOption: CookieSerializeOptions = {
         path: '/',
         maxAge
     }
     if (withCredentials) {
         const sameSite: 'none' = 'none';
-        return {
+        defaultOption = {
             httpOnly: true,
             secure: true,
             sameSite,
             ...defaultOption
         }
     }
-    else {
-        return defaultOption
+    if (domain) {
+        defaultOption = {
+            domain,
+            ...defaultOption
+        }
     }
+    return defaultOption as CookieSerializeOptions & { path: string }
 }
 
 export default function auth(providers: Provider<any>[], option: AuthOption) {

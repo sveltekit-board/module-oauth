@@ -41,5 +41,5 @@ export interface AuthOption{
     absoluteMaxAge?: number;
     autoRefreshMaxAge: boolean;
     withCredentials?: boolean;
-    subDomains?: string[];
+    useSubdomain?: boolean;
 }

@@ -38,11 +38,11 @@ function getUser(option: AuthOption) {
         if (option.autoRefreshMaxAge) {
             user.expiresIn = Date.now() + option.maxAge * 1000;
             const newToken = cipher(JSON.stringify(user), option.key);
-            input.event.cookies.set('auth-user', newToken, createCookieOption(option.maxAge, option?.withCredentials ?? false));
-            if(option.subDomains){
-                option.subDomains.forEach(subDomain => {
-                    input.event.cookies.set('auth-user', token, createCookieOption(option.maxAge, option?.withCredentials ?? false, subDomain));
-                })
+            if(option.useSubdomain){
+                input.event.cookies.set('auth-user', newToken, createCookieOption(option.maxAge, option?.withCredentials ?? false, input.event.url.hostname));
+            }
+            else{
+                input.event.cookies.set('auth-user', newToken, createCookieOption(option.maxAge, option?.withCredentials ?? false));
             }
         };
 
@@ -66,10 +66,11 @@ export function createCookieOption(maxAge: number, withCredentials: boolean, dom
     }
     if (domain) {
         defaultOption = {
-            domain,
+            domain: `.${domain}`,
             ...defaultOption
         }
     }
+    console.log(defaultOption);
     return defaultOption as CookieSerializeOptions & { path: string }
 }
 

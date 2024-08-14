@@ -6,8 +6,8 @@ import axios, { type AxiosResponse } from 'axios';
 import { cipher } from "./crypto.js";
 import { createCookieOption } from "./auth.js";
 
-export default class Provider<T extends Record<string, any>>{
-    client:Client;
+export default class Provider<T extends Record<string, any>> {
+    client: Client;
 
     // @ts-expect-error
     loginUrlPath: string; callbackUriPath: string; oAuthUrl: string; accessTokenUrl: string; userdataRequestUrl: string;
@@ -15,25 +15,25 @@ export default class Provider<T extends Record<string, any>>{
     createUser(userdataResponse: any): UserWithouExpiresIn<T>;
     // @ts-expect-error
     getAccessToken(responseData: any): string;
-    
+
 
     // @ts-check
-    constructor(client:Client){
+    constructor(client: Client) {
         this.client = client;
     }
 
-    handle(option: AuthOption){
+    handle(option: AuthOption) {
         const P = this;
 
         return async (input: HandleInput) => {
-            switch(input.event.url.pathname){
-                case(P.loginUrlPath): {
+            switch (input.event.url.pathname) {
+                case (P.loginUrlPath): {
                     //remove state
-                    input.event.cookies.delete("auth-state", { path:'/' });
+                    input.event.cookies.delete("auth-state", { path: '/' });
 
                     //create and implement state
                     const state = randomBytes(32).toString('hex');
-                    input.event.cookies.set("auth-state", state, {path:'/'});
+                    input.event.cookies.set("auth-state", state, { path: '/' });
 
                     //url
                     const authUrl = new URL(P.oAuthUrl);
@@ -47,20 +47,20 @@ export default class Provider<T extends Record<string, any>>{
                     //check redirect-to
                     input.event.cookies.delete('auth-redirect-to', { path: '/' });
                     const redirectTo = input.event.url.searchParams.get('redirect_to');
-                    if(redirectTo !== null){
+                    if (redirectTo !== null) {
                         input.event.cookies.set('auth-redirect-to', redirectTo, { path: '/' });
                     }
 
                     throw redirect(302, authUrl.href);
                 }
-                case(P.callbackUriPath): {
+                case (P.callbackUriPath): {
                     //state check
                     const cookieState = input.event.cookies.get("auth-state");
                     const uriState = input.event.url.searchParams.get("state")
-                    if(cookieState === undefined || uriState === null || cookieState !== uriState){
+                    if (cookieState === undefined || uriState === null || cookieState !== uriState) {
                         throw new Error("Invalid state");
                     }
-                    input.event.cookies.delete("auth-state", { path:'/' })
+                    input.event.cookies.delete("auth-state", { path: '/' })
 
                     //code query
                     const code = input.event.url.searchParams.get('code') as string;
@@ -70,7 +70,7 @@ export default class Provider<T extends Record<string, any>>{
                     redirectUri.pathname = P.callbackUriPath
 
                     //request
-                    const response:AxiosResponse = await axios({
+                    const response: AxiosResponse = await axios({
                         method: 'POST',
                         url: P.accessTokenUrl,
                         data: {
@@ -89,7 +89,7 @@ export default class Provider<T extends Record<string, any>>{
                     const accessToken = P.getAccessToken(response.data);
 
                     //request user data
-                    const userdataResponse:T = (await axios({
+                    const userdataResponse: T = (await axios({
                         method: 'GET',
                         url: P.userdataRequestUrl,
                         headers: {
@@ -100,23 +100,23 @@ export default class Provider<T extends Record<string, any>>{
 
                     let user: Partial<User<T>> = P.createUser(userdataResponse);
                     user.expiresIn = Date.now() + option.maxAge * 1000;
-                    if(option.absoluteMaxAge){
+                    if (option.absoluteMaxAge) {
                         user.absoluteExpiresIn = Date.now() + option.absoluteMaxAge * 1000;
                     }
                     const token = cipher(JSON.stringify(user), option.key);
-                    input.event.cookies.set('auth-user', token, createCookieOption(option.maxAge, option?.withCredentials ?? false));
-                    if(option.subDomains){
-                        option.subDomains.forEach(subDomain => {
-                            input.event.cookies.set('auth-user', token, createCookieOption(option.maxAge, option?.withCredentials ?? false, subDomain));
-                        })
+                    if (option.useSubdomain) {
+                        input.event.cookies.set('auth-user', token, createCookieOption(option.maxAge, option?.withCredentials ?? false, input.event.url.hostname));
+                    }
+                    else {
+                        input.event.cookies.set('auth-user', token, createCookieOption(option.maxAge, option?.withCredentials ?? false));
                     }
 
                     const redirectTo = input.event.cookies.get("auth-redirect-to");
-                    if(redirectTo !== undefined){
-                        input.event.cookies.delete("auth-redirect-to", { path:"/" });
+                    if (redirectTo !== undefined) {
+                        input.event.cookies.delete("auth-redirect-to", { path: "/" });
                         throw redirect(302, redirectTo);
                     }
-                    else{
+                    else {
                         throw redirect(302, '/');
                     }
                 }

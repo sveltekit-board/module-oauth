@@ -25,7 +25,8 @@ export const handle = sequence(auth([github, kakao, naver], {
     key: process.env.AUTH_KEY as string,
     maxAge: 3600,
     autoRefreshMaxAge: true,
-    withCredentials: true
+    withCredentials: true,
+    useSubdomain: true
 }), async function ({ event, resolve }) {
     if (event.locals.user) {
         console.log(event.locals.user)

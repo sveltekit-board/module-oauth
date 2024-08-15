@@ -70,7 +70,6 @@ export function createCookieOption(maxAge: number, withCredentials: boolean, dom
             ...defaultOption
         }
     }
-    console.log(defaultOption);
     return defaultOption as CookieSerializeOptions & { path: string }
 }
 

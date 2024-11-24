@@ -43,7 +43,7 @@ OAuth 인증 과정을 단순화하면 다음과 같습니다.
 3. 서버에서 `accessTokenUrl`로 요청하여 `access_token`을 가져옵니다.
 4. 서버에서 `userdataRequestUrl`로 요청하여 각 제공자에서 유저 데이터를 가져옵니다.
 
-새로운 제공제 클래스를 만드려면 `loginUrlPath`, `oAuthUrl`, `callbackUriPath`, `accessTokenUrl`, `userdataRequestUrl`와 `createUser`, `getAccessToken` 메소드를 설정해야합니다. 깃헙을 예로 들면 다음과 같습니다.
+새로운 제공자 클래스를 만드려면 `loginUrlPath`, `oAuthUrl`, `callbackUriPath`, `accessTokenUrl`, `userdataRequestUrl`와 `createUser`, `getAccessToken` 메소드를 설정해야합니다. 깃헙을 예로 들면 다음과 같습니다.
 
 ```ts
 class Github extends Provider<GithubUserData> {

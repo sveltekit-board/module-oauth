@@ -12,8 +12,10 @@ import Naver from "./providers/naver.js";
 export const providers = {
     Github,
     Kakao,
-    Naver
+    Naver,
+    Line
 }
 
 import { type User } from "./src/types.js";
+import Line from "./providers/line.js";
 export type { User };

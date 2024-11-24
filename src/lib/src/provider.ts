@@ -12,9 +12,27 @@ export default class Provider<T extends Record<string, any>> {
     // @ts-expect-error
     loginUrlPath: string; callbackUriPath: string; oAuthUrl: string; accessTokenUrl: string; userdataRequestUrl: string;
     // @ts-expect-error
-    createUser(userdataResponse: any): UserWithouExpiresIn<T>;
+    createUser(userdataResponse: any): UserWithouExpiresIn<T> { };
     // @ts-expect-error
-    getAccessToken(responseData: any): string;
+    getAccessToken(responseData: any): string { };
+
+    /**
+     * get auth url(login page)
+     * @param input 
+     * @param state 
+     * @returns
+     */
+    getAuthUrl(input: HandleInput, state: string) {
+        const authUrl = new URL(this.oAuthUrl);
+        const redirectUri = new URL(input.event.url.origin);
+        redirectUri.pathname = this.callbackUriPath;
+        authUrl.searchParams.append("client_id", this.client.clientId);
+        authUrl.searchParams.append("redirect_uri", redirectUri.href);
+        authUrl.searchParams.append("response_type", "code");
+        authUrl.searchParams.append("state", state);
+
+        return authUrl;
+    }
 
 
     // @ts-check
@@ -36,13 +54,7 @@ export default class Provider<T extends Record<string, any>> {
                     input.event.cookies.set("auth-state", state, { path: '/' });
 
                     //url
-                    const authUrl = new URL(P.oAuthUrl);
-                    const redirectUri = new URL(input.event.url.origin);
-                    redirectUri.pathname = P.callbackUriPath;
-                    authUrl.searchParams.append("client_id", P.client.clientId);
-                    authUrl.searchParams.append("redirect_uri", redirectUri.href);
-                    authUrl.searchParams.append("response_type", "code");
-                    authUrl.searchParams.append("state", state);
+                    const authUrl = P.getAuthUrl(input, state);
 
                     //check redirect-to
                     input.event.cookies.delete('auth-redirect-to', { path: '/' });

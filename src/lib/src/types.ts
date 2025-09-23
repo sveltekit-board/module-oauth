@@ -27,6 +27,7 @@ export interface User<T extends Record<string, any>>{
     expiresIn: number;
     absoluteExpiresIn?: number;
     providerUserData?: T;
+    uniqueKey: string;
 }
 
 export interface UserWithouExpiresIn<T extends Record<string, any>>{

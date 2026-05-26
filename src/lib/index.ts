@@ -19,3 +19,5 @@ export const providers = {
 import { type User } from "./src/types.js";
 import Line from "./providers/line.js";
 export type { User };
+
+export {cipher, decipher} from './src/crypto.js'
